@@ -1,0 +1,38 @@
+[tool.ruff]
+# Line length to match black config
+line-length = 100
+target-version = "py310"
+
+# Auto-fix as many issues as possible
+fix = true
+unsafe-fixes = true
+
+[tool.ruff.lint]
+# Enable many rule sets - more comprehensive linting
+select = [
+    "E",    # pycodestyle errors
+    "F",    # Pyflakes
+    "I",    # isort
+    "D",    # pydocstyle
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+    "RUF",  # Ruff-specific rules
+]
+# Ignore some docstring rules
+ignore = ["D100", "D104", "D203", "D213"]
+
+# Allow unused variables when underscored (like "_x")
+dummy-variable-rgx = "^_.*$"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+line-ending = "auto"
+indent-style = "space"
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]

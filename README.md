@@ -97,9 +97,9 @@ The bot uses a Pipecat pipeline with the following components:
 
 This project uses pre-commit hooks for automatic code formatting and linting. The configuration includes:
 
+- **Ruff**: Fast Python linter and formatter
 - **Black**: Code formatter
-- **isort**: Import sorter
-- **flake8**: Code linter
+- Basic file checks (trailing whitespace, YAML validation, etc.)
 
 ### Setup Pre-commit Hooks
 
