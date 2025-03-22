@@ -102,7 +102,7 @@ class WsBot:
         # Set up LLM service
         self.llm = OpenAILLMService(
             api_key=os.environ.get("OPENAI_API_KEY"),
-            model="gpt-4",
+            model="gpt-4o",
             system_prompt=self.system_prompt,
             temperature=0.7,
         )
@@ -110,7 +110,7 @@ class WsBot:
         # Set up TTS service
         self.tts = CartesiaTTSService(
             api_key=os.getenv("CARTESIA_API_KEY"),
-            voice_id="71a7ad14-091c-4e8e-a314-022ece01c121",  # British Reading Lady
+            voice_id=os.getenv("CARTESIA_VOICE_ID"),  # British Reading Lady
         )
 
     def get_notification_message(self):
