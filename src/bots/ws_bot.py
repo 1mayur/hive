@@ -2,23 +2,21 @@ import asyncio
 import os
 from collections.abc import Callable
 
+from dotenv import load_dotenv
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.context.aggregator import ContextAggregator
 from pipecat.llm.openai import OpenAILLMService
 from pipecat.pipeline.component import Component, Message
 from pipecat.pipeline.pipeline import Pipeline
-from pipecat.pipeline.runner import PipelineRunner, PipelineTask
-from pipecat.rtvi.components import (
-    RTVIBotTranscriptionService,
-    RTVISpeakingService,
-    RTVIUserTranscriptionService,
-)
-from pipecat.stt.openai import OpenAISTTService
+from pipecat.pipeline.runner import PipelineParams, PipelineRunner, PipelineTask
+from pipecat.services.cartesia import CartesiaTTSService
+from pipecat.services.deepgram import DeepgramSTTService
 from pipecat.transports.network.websocket_server import (
     WebsocketServerParams,
     WebsocketServerTransport,
 )
-from pipecat.tts.openai import OpenAITTSService
+
+load_dotenv(override=True)
 
 
 class AudioReceivedNotificationComponent(Component):
@@ -94,10 +92,7 @@ class WsBot:
             ),
         )
         # Set up STT service
-        self.stt = OpenAISTTService(
-            api_key=os.environ.get("OPENAI_API_KEY"),
-            model="whisper-1",
-        )
+        self.stt = DeepgramSTTService(api_key=os.getenv("DEEPGRAM_API_KEY"))
 
         # Create context aggregator to maintain conversation history
         self.context_aggregator = ContextAggregator()
@@ -113,9 +108,9 @@ class WsBot:
         )
 
         # Set up TTS service
-        self.tts = OpenAITTSService(
-            api_key=os.environ.get("OPENAI_API_KEY"),
-            voice="alloy",
+        self.tts = CartesiaTTSService(
+            api_key=os.getenv("CARTESIA_API_KEY"),
+            voice_id="71a7ad14-091c-4e8e-a314-022ece01c121",  # British Reading Lady
         )
 
     def get_notification_message(self):
@@ -128,11 +123,6 @@ class WsBot:
 
     def get_pipeline(self):
         """Create and return the configured bot pipeline."""
-        # Setup RTVI components
-        rtvi_speaking = RTVISpeakingService()
-        rtvi_user_transcription = RTVIUserTranscriptionService()
-        rtvi_bot_transcription = RTVIBotTranscriptionService()
-
         # Create audio received notification component
         audio_received_notification = (
             AudioReceivedNotificationComponent(
@@ -155,13 +145,10 @@ class WsBot:
         # Add remaining components
         pipeline_components.extend(
             [
-                self.context_aggregator.user(),  # Manage user message history
                 self.stt,  # Speech-to-text
+                self.context_aggregator.user(),  # Manage user message history
                 self.llm,  # Language model
-                self.context_aggregator.bot(),  # Manage bot message history
-                rtvi_speaking,  # Track speaking states
-                rtvi_user_transcription,  # Handle user speech transcription
-                rtvi_bot_transcription,  # Handle bot speech transcription
+                self.context_aggregator.assistant(),  # Manage bot message history
                 self.tts,  # Text-to-speech
                 self.transport.output(),  # Handle outgoing audio
             ]
@@ -172,7 +159,15 @@ class WsBot:
     async def run_bot(self):
         """Run the websocket bot pipeline asynchronously."""
         # Run the pipeline
-        task = PipelineTask(self.get_pipeline())
+        task = PipelineTask(
+            self.get_pipeline(),
+            params=PipelineParams(
+                audio_in_sample_rate=16000,
+                audio_out_sample_rate=16000,
+                allow_interruptions=False,
+                enable_metrics=True,
+            ),
+        )
         await PipelineRunner().run(task)
 
     def start(self):
