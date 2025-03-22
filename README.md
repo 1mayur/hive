@@ -92,3 +92,33 @@ The bot uses a Pipecat pipeline with the following components:
 
 - Python 3.10+
 - OpenAI API key
+
+## Code Formatting and Linting
+
+This project uses pre-commit hooks for automatic code formatting and linting. The configuration includes:
+
+- **Black**: Code formatter
+- **isort**: Import sorter
+- **flake8**: Code linter
+
+### Setup Pre-commit Hooks
+
+Run the setup script to install pre-commit hooks:
+
+```bash
+# Activate your virtual environment first
+source env/bin/activate
+
+# Run the setup script
+python setup_precommit.py
+```
+
+### Format Existing Files
+
+To format all existing files in the repository:
+
+```bash
+pre-commit run --all-files
+```
+
+The pre-commit hooks will also run automatically on every git commit.
