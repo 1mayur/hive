@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import subprocess
 import sys
 
@@ -15,18 +16,38 @@ def setup_precommit():
         # Install the pre-commit hooks
         subprocess.run(["pre-commit", "install"], check=True)
 
+        # Set up git hooks path to include our auto-fix script
+        pre_commit_path = os.path.join(os.getcwd(), ".git", "hooks", "pre-commit")
+
+        # Ensure the auto-fix script is referenced in the pre-commit hook
+        with open(pre_commit_path) as f:
+            content = f.read()
+
+        # Add our custom script to automatically stage fixed files
+        if "/.pre-commit" not in content:
+            with open(pre_commit_path, "a") as f:
+                f.write(
+                    "\n# Auto-stage fixed files\n$(git rev-parse --show-toplevel)/.pre-commit\n"
+                )
+
         # Update pre-commit hooks to the latest versions
         subprocess.run(["pre-commit", "autoupdate"], check=True)
 
         print("\n✅ Pre-commit hooks successfully installed!")
-        print("\nYou can now format all existing files with:")
-        print("    pre-commit run --all-files")
+        print("\nPre-commit is now configured to automatically:")
+        print("  1. Fix formatting and linting issues in your code")
+        print("  2. Stage the fixed files")
+        print("  3. Allow the commit to proceed")
+        print("\nYou can still manually format all files with:")
+        print("  pre-commit run --all-files")
         print("\nOr fix all issues directly with Ruff:")
-        print("    python setup_precommit.py --fix-all")
-        print("\nPre-commit will automatically run on future git commits.")
+        print("  python setup_precommit.py --fix-all")
 
     except subprocess.CalledProcessError as e:
         print(f"\n❌ Error setting up pre-commit hooks: {e}")
+        return 1
+    except Exception as e:
+        print(f"\n❌ Unexpected error: {e}")
         return 1
 
     return 0

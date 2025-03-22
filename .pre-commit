@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Automatically stage fixed files
+git add -u
