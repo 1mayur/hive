@@ -20,7 +20,7 @@ select = [
     "RUF",  # Ruff-specific rules
 ]
 # Ignore some docstring rules
-ignore = ["D100", "D104", "D203", "D213"]
+ignore = ["D100", "D101", "D102", "D103", "D104", "D107", "D203", "D213"]
 
 # Allow unused variables when underscored (like "_x")
 dummy-variable-rgx = "^_.*$"
